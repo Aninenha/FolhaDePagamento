@@ -147,6 +147,8 @@ type
     function fCriaCodigo:integer;
     procedure pValidarECriarNovoCargo(prNomeDoCargo:string);
     procedure pCriarNovoCargoNoCds(prNomeDoCargo:string;prCodigo:integer);
+    procedure pDesabilitarCamposDaTelaDeCadastroDeFuncionario;
+    procedure pHabillitarCamposDaTelaDeCadastroDeFuncionario;
   public
     { Public declarations }
   end;
@@ -459,6 +461,8 @@ begin
   btSalvar.Enabled:=false;
 
   pLimparCamposDaTelaPrincipal;
+
+  cbNomeGbFuncionario.SetFocus;
 end;
 
 procedure TfrFolhaDePagamento.pEnviarFolhaDePagamento;
@@ -513,6 +517,8 @@ procedure TfrFolhaDePagamento.pDesabilitarCamposDaTelaPrincipal;
 begin
   // Desabilita campos
   cbNomeGbFuncionario.Enabled := False;
+  cbAnoGbFuncionario.Enabled := False;
+  cbMesGbFuncionario.Enabled := False;
   btConsultarGbFuncionario.Enabled := False;
   btCadastrarGbFuncionario.Enabled := False;
   edSalarioBaseGbProventos.Enabled := False;
@@ -522,6 +528,7 @@ begin
   btCalcular.Enabled := False;
   btSalvar.Enabled := False;
   btLimpar.Enabled := False;
+  btDelete.Enabled := False;
   grFolhaDePagamentos.Enabled := False;
 
   // Aciona ReadOnly
@@ -538,6 +545,8 @@ procedure TfrFolhaDePagamento.pHabilitarCamposDaTelaPrincipal;
 begin
   //Habilita campos
   cbNomeGbFuncionario.Enabled := True;
+  cbAnoGbFuncionario.Enabled := True;
+  cbMesGbFuncionario.Enabled := True;
   btConsultarGbFuncionario.Enabled := True;
   btCadastrarGbFuncionario.Enabled := True;
   edSalarioBaseGbProventos.Enabled := True;
@@ -546,6 +555,7 @@ begin
   btConsultarTabela.Enabled := True;
   btCalcular.Enabled := True;
   btLimpar.Enabled := True;
+  btDelete.Enabled := True;
   grFolhaDePagamentos.Enabled := True;
 
   //Desativa ReadOnly
@@ -564,17 +574,17 @@ end;
 procedure TfrFolhaDePagamento.pDefinirTabOrderDaTelaPrincipal;
 begin
   cbNomeGbFuncionario.TabOrder:= 0;
-  btConsultarGbFuncionario.TabOrder:= 1;
-  btCadastrarGbFuncionario.TabOrder:= 2;
-  edSalarioBaseGbProventos.TabOrder:= 3;
-  edHorasExtrasGbProventos.TabOrder:= 4;
-  edOutrosGbProventos.TabOrder:=5;
-  edValeTransporteGbDescontos.TabOrder:= 6;
-  btCalcular.TabOrder:= 7;
-  btSalvar.TabOrder:=8;
-  btLimpar.TabOrder:=9;
-  btConsultarTabela.TabOrder:=10;
-  cbNomeGbFuncionario.TabOrder:=11;
+  cbMesGbFuncionario.TabOrder := 1;
+  cbAnoGbFuncionario.TabOrder := 2;
+  btConsultarGbFuncionario.TabOrder:= 3;
+  btCadastrarGbFuncionario.TabOrder:= 4;
+  edSalarioBaseGbProventos.TabOrder:= 1;
+  edHorasExtrasGbProventos.TabOrder:= 2;
+  edOutrosGbProventos.TabOrder:=3;
+  btCalcular.TabOrder:= 1;
+  btSalvar.TabOrder:=2;
+  btLimpar.TabOrder:=3;
+  btConsultarTabela.TabOrder:=4;
 end;
 
 procedure TfrFolhaDePagamento.pDefinirTabOrderDoPnCadastroDeFuncionario;
@@ -582,10 +592,11 @@ begin
   edCodigoPnCadastroDeFuncionarios.TabOrder := 0;
   edNomePnCadastroDeFuncionarios.TabOrder := 1;
   cbCargoPnCadastroDeFuncionarios.TabOrder := 2;
-  edEnderecoPnCadastroDeFuncionarios.TabOrder := 3;
-  edTelefonePnCadastroDeFuncionarios.TabOrder := 4;
-  btSalvarPnCadastroDeFuncionarios.TabOrder := 5;
-  btFecharPnCadastroDeFuncionarios.TabOrder := 6;
+  btNovoPnCadastroDeFuncionarios.TabOrder := 3;
+  edEnderecoPnCadastroDeFuncionarios.TabOrder := 4;
+  edTelefonePnCadastroDeFuncionarios.TabOrder := 5;
+  btSalvarPnCadastroDeFuncionarios.TabOrder := 6;
+  btFecharPnCadastroDeFuncionarios.TabOrder := 7;
 end;
 
 procedure TfrFolhaDePagamento.edCodigoPnCadastroDeFuncionariosExit(
@@ -759,13 +770,16 @@ end;
 procedure TfrFolhaDePagamento.btNovoPnCadastroDeFuncionariosClick(
   Sender: TObject);
 begin
+  pDesabilitarCamposDaTelaDeCadastroDeFuncionario;
   pnCadastroDeCargos.Visible := true;
+  edNomeDoCargoPnCadastroDeCargos.SetFocus;
 end;
 
 procedure TfrFolhaDePagamento.btFecharPnCadastroDeCargosClick(
   Sender: TObject);
 begin
   pnCadastroDeCargos.Visible := false;
+  pHabillitarCamposDaTelaDeCadastroDeFuncionario;
 end;
 
 procedure TfrFolhaDePagamento.FormCreate(Sender: TObject);
@@ -821,6 +835,40 @@ procedure TfrFolhaDePagamento.grFolhaDePagamentosTitleClick(
   Column: TColumn);
 begin
   cdsFolhaDePagamentos.IndexFieldNames := Column.FieldName;
+end;
+
+procedure TfrFolhaDePagamento.pDesabilitarCamposDaTelaDeCadastroDeFuncionario;
+begin
+  edCodigoPnCadastroDeFuncionarios.Enabled := False;
+  edNomePnCadastroDeFuncionarios.Enabled := False;
+  cbCargoPnCadastroDeFuncionarios.Enabled := False;
+  edEnderecoPnCadastroDeFuncionarios.Enabled := False;
+  edTelefonePnCadastroDeFuncionarios.Enabled := False;
+  btSalvarPnCadastroDeFuncionarios.Enabled := False;
+  btFecharPnCadastroDeFuncionarios.Enabled := False;
+
+  edCodigoPnCadastroDeFuncionarios.ReadOnly := True;
+  edNomePnCadastroDeFuncionarios.ReadOnly := True;
+  edEnderecoPnCadastroDeFuncionarios.ReadOnly := True;
+  edTelefonePnCadastroDeFuncionarios.ReadOnly := True;
+end;
+
+procedure TfrFolhaDePagamento.pHabillitarCamposDaTelaDeCadastroDeFuncionario;
+begin
+  edCodigoPnCadastroDeFuncionarios.Enabled := True;
+  edNomePnCadastroDeFuncionarios.Enabled := True;
+  cbCargoPnCadastroDeFuncionarios.Enabled := True;
+  edEnderecoPnCadastroDeFuncionarios.Enabled := True;
+  edTelefonePnCadastroDeFuncionarios.Enabled := True;
+  btSalvarPnCadastroDeFuncionarios.Enabled := True;
+  btFecharPnCadastroDeFuncionarios.Enabled := True;
+
+  edCodigoPnCadastroDeFuncionarios.ReadOnly := False;
+  edNomePnCadastroDeFuncionarios.ReadOnly := False;
+  edEnderecoPnCadastroDeFuncionarios.ReadOnly := False;
+  edTelefonePnCadastroDeFuncionarios.ReadOnly := False;
+
+  edCodigoPnCadastroDeFuncionarios.SetFocus;
 end;
 
 end.

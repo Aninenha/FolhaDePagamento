@@ -21,6 +21,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
     Height = 97
     Caption = 'Funcion'#225'rio'
     TabOrder = 0
+    TabStop = True
     object lbNomeGbFuncionario: TLabel
       Left = 40
       Top = 36
@@ -66,7 +67,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       TabStop = False
       Enabled = False
       ReadOnly = True
-      TabOrder = 1
+      TabOrder = 5
     end
     object btCadastrarGbFuncionario: TButton
       Left = 367
@@ -74,7 +75,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Width = 75
       Height = 25
       Caption = 'Cadastrar'
-      TabOrder = 2
+      TabOrder = 3
       OnClick = btCadastrarGbFuncionarioClick
     end
     object cbMesGbFuncionario: TComboBox
@@ -83,7 +84,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Width = 118
       Height = 21
       ItemHeight = 13
-      TabOrder = 3
+      TabOrder = 1
       OnChange = cbMesGbFuncionarioChange
       Items.Strings = (
         'Janeiro'
@@ -105,7 +106,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Width = 110
       Height = 21
       ItemHeight = 13
-      TabOrder = 4
+      TabOrder = 2
       OnChange = cbAnoGbFuncionarioChange
       Items.Strings = (
         '2026')
@@ -116,7 +117,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Width = 75
       Height = 25
       Caption = 'Consultar'
-      TabOrder = 5
+      TabOrder = 4
       OnClick = btConsultarGbFuncionarioClick
     end
   end
@@ -127,6 +128,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
     Height = 129
     Caption = 'Proventos'
     TabOrder = 1
+    TabStop = True
     object lbSalarioBaseGbProventos: TLabel
       Left = 61
       Top = 32
@@ -197,7 +199,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
     Width = 265
     Height = 129
     Caption = 'Descontos'
-    TabOrder = 2
+    TabOrder = 8
     object lbTotalGbDescontos: TLabel
       Left = 96
       Top = 104
@@ -274,7 +276,8 @@ object frFolhaDePagamento: TfrFolhaDePagamento
     Width = 537
     Height = 89
     Caption = 'Resultado'
-    TabOrder = 3
+    TabOrder = 2
+    TabStop = True
     object lbTotalProventosGbResultado: TLabel
       Left = 27
       Top = 36
@@ -333,7 +336,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
     Width = 75
     Height = 25
     Caption = 'Calcular'
-    TabOrder = 4
+    TabOrder = 3
     OnClick = btCalcularClick
   end
   object btSalvar: TButton
@@ -343,7 +346,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
     Height = 25
     Caption = 'Salvar'
     Enabled = False
-    TabOrder = 5
+    TabOrder = 4
     OnClick = btSalvarClick
   end
   object btLimpar: TButton
@@ -352,7 +355,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
     Width = 75
     Height = 25
     Caption = 'Limpar'
-    TabOrder = 6
+    TabOrder = 5
     OnClick = btLimparClick
   end
   object grFolhaDePagamentos: TDBGrid
@@ -360,9 +363,10 @@ object frFolhaDePagamento: TfrFolhaDePagamento
     Top = 424
     Width = 537
     Height = 120
+    TabStop = False
     DataSource = dsFolhaDePagamentos
     ReadOnly = True
-    TabOrder = 8
+    TabOrder = 9
     TitleFont.Charset = DEFAULT_CHARSET
     TitleFont.Color = clWindowText
     TitleFont.Height = -11
@@ -433,7 +437,8 @@ object frFolhaDePagamento: TfrFolhaDePagamento
     Top = 48
     Width = 409
     Height = 209
-    TabOrder = 9
+    TabOrder = 10
+    TabStop = True
     Visible = False
     object lbCadastroDeFuncionariosPnCadastroDeFuncionarios: TLabel
       Left = 132
@@ -489,7 +494,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Width = 75
       Height = 25
       Caption = 'Salvar'
-      TabOrder = 0
+      TabOrder = 6
       OnClick = btSalvarPnCadastroDeFuncionariosClick
     end
     object btFecharPnCadastroDeFuncionarios: TButton
@@ -498,7 +503,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Width = 75
       Height = 25
       Caption = 'Fechar'
-      TabOrder = 1
+      TabOrder = 7
       OnClick = btFecharPnCadastroDeFuncionariosClick
     end
     object edCodigoPnCadastroDeFuncionarios: TEdit
@@ -506,7 +511,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Top = 40
       Width = 241
       Height = 21
-      TabOrder = 2
+      TabOrder = 0
       OnExit = edCodigoPnCadastroDeFuncionariosExit
     end
     object edNomePnCadastroDeFuncionarios: TEdit
@@ -514,7 +519,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Top = 64
       Width = 241
       Height = 21
-      TabOrder = 3
+      TabOrder = 1
     end
     object edEnderecoPnCadastroDeFuncionarios: TEdit
       Left = 118
@@ -536,7 +541,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Width = 163
       Height = 21
       ItemHeight = 13
-      TabOrder = 6
+      TabOrder = 2
       Items.Strings = (
         'Analista'
         'L'#237'der'
@@ -550,7 +555,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Width = 75
       Height = 25
       Caption = 'Novo'
-      TabOrder = 7
+      TabOrder = 3
       OnClick = btNovoPnCadastroDeFuncionariosClick
     end
   end
@@ -569,7 +574,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
     Width = 75
     Height = 25
     Caption = 'Delete'
-    TabOrder = 10
+    TabOrder = 6
     OnClick = btDeleteClick
   end
   object pnCadastroDeCargos: TPanel
