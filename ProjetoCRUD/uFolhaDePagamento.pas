@@ -88,6 +88,17 @@ type
     cdsFolhaDePagamentosbdSALARIOLIQUIDO: TCurrencyField;
     cdsFolhaDePagamentosbdMES: TStringField;
     cdsFolhaDePagamentosbdANO: TIntegerField;
+    pnCadastroDeCargos: TPanel;
+    lbCadastroDeCargosPnCadastroDeCargos: TLabel;
+    lbNomeDoCargoPnCadastroDeCargos: TLabel;
+    edNomeDoCargoPnCadastroDeCargos: TEdit;
+    btSalvarPnCadastroDeCargos: TButton;
+    btFecharPnCadastroDeCargos: TButton;
+    btNovoPnCadastroDeFuncionarios: TButton;
+    cdsCargos: TClientDataSet;
+    dsCargos: TDataSource;
+    cdsCargosbdCODIGOCARGO: TIntegerField;
+    cdsCargosbdNOMEDOCARGO: TStringField;
     procedure btCadastrarGbFuncionarioClick(Sender: TObject);
     procedure btFecharPnCadastroDeFuncionariosClick(Sender: TObject);
     procedure btCalcularClick(Sender: TObject);
@@ -107,6 +118,11 @@ type
     procedure btDeleteClick(Sender: TObject);
     procedure cbMesGbFuncionarioChange(Sender: TObject);
     procedure cbAnoGbFuncionarioChange(Sender: TObject);
+    procedure btNovoPnCadastroDeFuncionariosClick(Sender: TObject);
+    procedure btFecharPnCadastroDeCargosClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure btSalvarPnCadastroDeCargosClick(Sender: TObject);
+    procedure grFolhaDePagamentosTitleClick(Column: TColumn);
   private
     procedure pEnviarCadastroDeFuncionarios;
     procedure pCalcularProventos;
@@ -127,6 +143,10 @@ type
     procedure pRetornarInformacoesDeFolha;
     function fRegistroExiste:boolean;
     procedure pAtualizarCbNome;
+    procedure pAlteraEdCargoBaseadoEmCbNome;
+    function fCriaCodigo:integer;
+    procedure pValidarECriarNovoCargo(prNomeDoCargo:string);
+    procedure pCriarNovoCargoNoCds(prNomeDoCargo:string;prCodigo:integer);
   public
     { Public declarations }
   end;
@@ -141,8 +161,6 @@ implementation
 procedure TfrFolhaDePagamento.btCadastrarGbFuncionarioClick(
   Sender: TObject);
 begin
-  pnCadastroDeFuncionarios.Top :=112;
-  pnCadastroDeFuncionarios.left :=96;
   pnCadastroDeFuncionarios.Visible:=true;
   pDesabilitarCamposDaTelaPrincipal;
 end;
@@ -175,9 +193,9 @@ begin
      end;
 
   wSalarioBase:=StrToCurrDef(edSalarioBaseGbProventos.Text,0);
-  edINSSGbDescontos.Text := CurrToStr(fCalcularINSS(wSalarioBase));
-  edIRRFGbDescontos.Text := CurrToStr(fCalcularIRRF(wSalarioBase));
-  edValeTransporteGbDescontos.Text := CurrToStr(fCalcularValeTransporte(wSalarioBase));
+  edINSSGbDescontos.Text := CurrToStrF(fCalcularINSS(wSalarioBase), ffFixed,2);
+  edIRRFGbDescontos.Text := CurrToStrF(fCalcularIRRF(wSalarioBase), ffFixed,2);
+  edValeTransporteGbDescontos.Text := CurrToStrF(fCalcularValeTransporte(wSalarioBase), ffFixed,2);
   pCalcularDescontos;
   pCalcularSalarioLiquido;
   btSalvar.Enabled:=true;
@@ -208,7 +226,7 @@ begin
      begin
        //Atualiza as folhas de pagamento com o respectivo código do funcionario
        cdsFolhaDePagamentos.IndexFieldNames := 'bdCODIGO';
-
+       cdsFolhaDePagamentos.First;
        while not cdsFolhaDePagamentos.Eof do
          begin
            if cdsFolhaDePagamentos.FindKey([StrToInt(edCodigoPnCadastroDeFuncionarios.text)]) then
@@ -260,14 +278,13 @@ begin
      end
   else
      begin
-       cdsCadastroDeFuncionarios.IndexFieldNames := 'bdNOME';
-       cdsCadastroDeFuncionarios.FindKey([cbNomeGbFuncionario.Items[cbNomeGbFuncionario.ItemIndex]]);
-       edCargoGbFuncionario.Text := cbCargoPnCadastroDeFuncionarios.Items[cdsCadastroDeFuncionariosbdCARGO.AsInteger];
+       pAlteraEdCargoBaseadoEmCbNome;
      end;
 
   if fRegistroExiste then
      begin
-       // encontrar
+       cdsFolhaDePagamentos.IndexFieldNames := 'bdCODIGOFOLHA';
+       cdsFolhaDePagamentos.FindKey([fCriaCodigo]);
        pRetornarInformacoesDeFolha;
      end;
 end;
@@ -294,6 +311,7 @@ var
   wSalarioBase:Currency;
   wHorasExtras:Currency;
   wOutros:Currency;
+  wTotal:Currency;
 begin
   // Limpa os campos de descontos quando há alguma alteração
   edTotalGbDescontos.Text := '';
@@ -303,7 +321,8 @@ begin
   wSalarioBase := StrToCurrDef(edSalarioBaseGbProventos.Text,0);
   wHorasExtras := StrToCurrDef(edHorasExtrasGbProventos.Text,0);
   wOutros := StrToCurrDef(edOutrosGbProventos.Text,0);
-  edTotalGbProventos.Text := CurrToStr(wSalarioBase+wHorasExtras+wOutros);
+  wTotal := wSalarioBase+wHorasExtras+wOutros;
+  edTotalGbProventos.Text := CurrToStrF(wTotal,ffFixed,2);
 end;
 
 procedure TfrFolhaDePagamento.edSalarioBaseGbProventosExit(
@@ -365,7 +384,6 @@ begin
      end;
 
     Result := wDeducaoTotal;
-
 end;
 
 function TfrFolhaDePagamento.fCalcularIRRF(
@@ -385,13 +403,14 @@ var
   wINSS:Currency;
   wIRRF:Currency;
   wValeTransporte:Currency;
+  wTotal:Currency;
 begin
   // Colocar validação
   wINSS:= StrToCurr(edINSSGbDescontos.Text);
   wIRRF:= StrToCurr(edIRRFGbDescontos.Text);
   wValeTransporte:= StrToCurrDef(edValeTransporteGbDescontos.Text,0);
-
-  edTotalGbDescontos.Text:= CurrToStr(wINSS + wIRRF + wValeTransporte);
+  wTotal:= wINSS + wIRRF + wValeTransporte;
+  edTotalGbDescontos.Text:= CurrToStrF(wTotal,ffFixed,2);
 end;
 
 procedure TfrFolhaDePagamento.pCalcularSalarioLiquido;
@@ -404,7 +423,7 @@ begin
   wDescontos := StrToCurrDef(edTotalGbDescontos.Text,0);
   wSalarioLiquido := wProventos - wDescontos;
 
-  edSalarioLiquidoGbResultado.Text := CurrToStr(wSalarioLiquido);
+  edSalarioLiquidoGbResultado.Text := CurrToStrF(wSalarioLiquido, ffFixed, 2);
 end;
 
 procedure TfrFolhaDePagamento.edTotalGbProventosChange(Sender: TObject);
@@ -449,7 +468,7 @@ begin
   cdsCadastroDeFuncionarios.FindKey([cbNomeGbFuncionario.Items[cbNomeGbFuncionario.ItemIndex]]);
   //Inicio dos envios
   //// Padrão de código da folha: mes/ano/00/codigodofuncionario
-  cdsFolhaDePagamentosbdCODIGOFOLHA.AsInteger :=StrToInt(IntToStr(cbMesGbFuncionario.ItemIndex + 1) + cbAnoGbFuncionario.Items[cbAnoGbFuncionario.ItemIndex] + '00' + IntToStr(cdsCadastroDeFuncionariosbdCODIGO.AsInteger));
+  cdsFolhaDePagamentosbdCODIGOFOLHA.AsInteger := fCriaCodigo;
   cdsFolhaDePagamentosbdNOME.AsString := cbNomeGbFuncionario.Items[cbNomeGbFuncionario.ItemIndex];
   //Pega o Código do cdsCadastroDeFuncionarios seguindo o nome;
   cdsFolhaDePagamentosbdMES.AsString := cbMesGbFuncionario.Items[cbMesGbFuncionario.ItemIndex];
@@ -633,8 +652,6 @@ begin
   edSalarioLiquidoGbResultado.Text := '';
 end;
 
-
-
 procedure TfrFolhaDePagamento.grFolhaDePagamentosCellClick(
   Column: TColumn);
 begin
@@ -652,18 +669,21 @@ begin
   cbNomeGbFuncionario.ItemIndex := cbNomeGbFuncionario.Items.IndexOf(cdsFolhaDePagamentosbdNOME.AsString);
   cbMesGbFuncionario.ItemIndex := cbMesGbFuncionario.Items.IndexOf(cdsFolhaDePagamentosbdMES.AsString);
   cbAnoGbFuncionario.ItemIndex := cbAnoGbFuncionario.Items.IndexOf(cdsFolhaDePagamentosbdANO.AsString);
-  edSalarioBaseGbProventos.Text := CurrToStr(cdsFolhaDePagamentosbdSALARIOBASE.AsCurrency);
-  edHorasExtrasGbProventos.Text := CurrToStr(cdsFolhaDePagamentosbdHORASEXTRAS.AsCurrency);
-  edOutrosGbProventos.Text := CurrToStr(cdsFolhaDePagamentosbdOUTROS.AsCurrency);
+  edSalarioBaseGbProventos.Text := CurrToStrF(cdsFolhaDePagamentosbdSALARIOBASE.AsCurrency, ffFixed,2);
+  edHorasExtrasGbProventos.Text := CurrToStrF(cdsFolhaDePagamentosbdHORASEXTRAS.AsCurrency, ffFixed,2);
+  edOutrosGbProventos.Text := CurrToStrF(cdsFolhaDePagamentosbdOUTROS.AsCurrency, ffFixed,2);
+
+  // Para trazer o cargo
+  pAlteraEdCargoBaseadoEmCbNome;
 
   // Para calcular todos os proventos corretamente
   pCalcularProventos;
 
   // Repete os calculos de descontos
   wSalarioBase:=StrToCurrDef(edSalarioBaseGbProventos.Text,0);
-  edINSSGbDescontos.Text := CurrToStr(fCalcularINSS(wSalarioBase));
-  edIRRFGbDescontos.Text := CurrToStr(fCalcularIRRF(wSalarioBase));
-  edValeTransporteGbDescontos.Text := CurrToStr(fCalcularValeTransporte(wSalarioBase));
+  edINSSGbDescontos.Text := CurrToStrF(fCalcularINSS(wSalarioBase), ffFixed,2);
+  edIRRFGbDescontos.Text := CurrToStrF(fCalcularIRRF(wSalarioBase), ffFixed,2);
+  edValeTransporteGbDescontos.Text := CurrToStrF(fCalcularValeTransporte(wSalarioBase), ffFixed,2);
 
   // Para calcular todos os descontos e salário liquido + habilitar o botão salvar;
   pCalcularDescontos;
@@ -682,21 +702,11 @@ end;
 
 function TfrFolhaDePagamento.fRegistroExiste: boolean;
 begin
-  Result := true;
+  Result := false;
 
-  // se todos os registros existem simultaneamente ele retorna as informações
-  // talvez possa ser melhor usar if else para evitar trazer a folha errada?
-  cdsFolhaDePagamentos.IndexFieldNames := 'bdNOME';
-  if not cdsFolhaDePagamentos.FindKey([cbNomeGbFuncionario.Items[cbNomeGbFuncionario.ItemIndex]]) then
-     Result := false;
-
-  cdsFolhaDePagamentos.IndexFieldNames := 'bdMES';
-  if not cdsFolhaDePagamentos.FindKey([cbMesGbFuncionario.Items[cbMesGbFuncionario.ItemIndex]]) then
-     Result := false;
-
-  cdsFolhaDePagamentos.IndexFieldNames := 'bdANO';
-  if not cdsFolhaDePagamentos.FindKey([cbAnoGbFuncionario.Items[cbAnoGbFuncionario.ItemIndex]]) then
-     Result := false;
+  cdsFolhaDePagamentos.IndexFieldNames := 'bdCODIGOFOLHA';
+  if cdsFolhaDePagamentos.FindKey([fCriaCodigo]) then
+     Result := true;
 end;
 
 procedure TfrFolhaDePagamento.cbMesGbFuncionarioChange(Sender: TObject);
@@ -704,6 +714,8 @@ begin
   if fRegistroExiste then
      begin
        // retorna as infos para os campos editáveis e combobox
+       cdsFolhaDePagamentos.IndexFieldNames := 'bdCODIGOFOLHA';
+       cdsFolhaDePagamentos.FindKey([fCriaCodigo]);
        pRetornarInformacoesDeFolha;
      end;
 end;
@@ -713,6 +725,8 @@ begin
   if fRegistroExiste then
      begin
        // retorna as infos para os campos editáveis e combobox
+       cdsFolhaDePagamentos.IndexFieldNames := 'bdCODIGOFOLHA';
+       cdsFolhaDePagamentos.FindKey([fCriaCodigo]);
        pRetornarInformacoesDeFolha;
      end;
 end;
@@ -722,6 +736,7 @@ begin
   cbNomeGbFuncionario.Clear;
 
   cdsCadastroDeFuncionarios.IndexFieldNames := 'bdCODIGO';
+  cdsCadastroDeFuncionarios.First;
   while not cdsCadastroDeFuncionarios.Eof do
     begin
       cbNomeGbFuncionario.Items.Add(cdsCadastroDeFuncionariosbdNOME.AsString);
@@ -729,4 +744,87 @@ begin
     end;
 end;
 
+procedure TfrFolhaDePagamento.pAlteraEdCargoBaseadoEmCbNome;
+begin
+  cdsCadastroDeFuncionarios.IndexFieldNames := 'bdNOME';
+  cdsCadastroDeFuncionarios.FindKey([cbNomeGbFuncionario.Items[cbNomeGbFuncionario.ItemIndex]]);
+  edCargoGbFuncionario.Text := cbCargoPnCadastroDeFuncionarios.Items[cdsCadastroDeFuncionariosbdCARGO.AsInteger];
+end;
+
+function TfrFolhaDePagamento.fCriaCodigo: integer;
+begin
+  Result := StrToInt(IntToStr(cbMesGbFuncionario.ItemIndex + 1) + cbAnoGbFuncionario.Items[cbAnoGbFuncionario.ItemIndex] + '00' + IntToStr(cdsCadastroDeFuncionariosbdCODIGO.AsInteger))
+end;
+
+procedure TfrFolhaDePagamento.btNovoPnCadastroDeFuncionariosClick(
+  Sender: TObject);
+begin
+  pnCadastroDeCargos.Visible := true;
+end;
+
+procedure TfrFolhaDePagamento.btFecharPnCadastroDeCargosClick(
+  Sender: TObject);
+begin
+  pnCadastroDeCargos.Visible := false;
+end;
+
+procedure TfrFolhaDePagamento.FormCreate(Sender: TObject);
+var
+  wCount:integer;
+begin
+  // Altera localização dos painéis
+
+  pnCadastroDeFuncionarios.Top :=112;
+  pnCadastroDeFuncionarios.left :=96;
+  pnCadastroDeCargos.Top := 172;
+  pnCadastroDeCargos.Left := 96;
+  wCount := 1;
+  while  wCount <= cbCargoPnCadastroDeFuncionarios.Items.Count do
+    begin
+      pCriarNovoCargoNoCDS(cbCargoPnCadastroDeFuncionarios.Items[wCount-1],wCount);
+      wCount := wCount + 1;
+    end;
+end;
+
+procedure TfrFolhaDePagamento.btSalvarPnCadastroDeCargosClick(
+  Sender: TObject);
+begin
+  pValidarECriarNovoCargo(edNomeDoCargoPnCadastroDeCargos.Text);
+  edNomeDoCargoPnCadastroDeCargos.Clear;
+end;
+
+procedure TfrFolhaDePagamento.pValidarECriarNovoCargo(
+  prNomeDoCargo: string);
+begin
+  cdsCargos.IndexFieldNames := 'bdNOMEDOCARGO';
+  cdsCargos.First;
+  if not cdsCargos.FindKey([prNomeDoCargo]) then
+     begin
+       pCriarNovoCargoNoCds(prNomeDoCargo, cbCargoPnCadastroDeFuncionarios.Items.Count +1);
+       cbCargoPnCadastroDeFuncionarios.Items.Add(edNomeDoCargoPnCadastroDeCargos.Text);
+       ShowMessage('Novo cargo cadastrado com sucesso!');
+     end
+  else
+     ShowMessage('Cargo já existe!');
+end;
+
+procedure TfrFolhaDePagamento.pCriarNovoCargoNoCds(prNomeDoCargo: string;
+  prCodigo: integer);
+begin
+  cdsCargos.Insert;
+  cdsCargosbdCODIGOCARGO.AsInteger := prCodigo;
+  cdsCargosbdNOMEDOCARGO.AsString := prNomeDoCargo;
+  cdsCargos.Post;
+end;
+
+procedure TfrFolhaDePagamento.grFolhaDePagamentosTitleClick(
+  Column: TColumn);
+begin
+  cdsFolhaDePagamentos.IndexFieldNames := Column.FieldName;
+end;
+
 end.
+
+
+
+

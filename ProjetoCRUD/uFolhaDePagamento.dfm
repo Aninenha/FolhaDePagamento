@@ -1,8 +1,8 @@
 object frFolhaDePagamento: TfrFolhaDePagamento
-  Left = 171
-  Top = 77
-  Width = 1170
-  Height = 652
+  Left = 201
+  Top = 119
+  Width = 1166
+  Height = 646
   Caption = 'Folha de Pagamento'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -11,6 +11,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
   object gbFuncionario: TGroupBox
@@ -368,6 +369,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
     TitleFont.Name = 'MS Sans Serif'
     TitleFont.Style = []
     OnCellClick = grFolhaDePagamentosCellClick
+    OnTitleClick = grFolhaDePagamentosTitleClick
     Columns = <
       item
         Expanded = False
@@ -447,35 +449,35 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       ParentFont = False
     end
     object lbCodigoPnCadastroDeFuncionarios: TLabel
-      Left = 62
+      Left = 77
       Top = 44
       Width = 36
       Height = 13
       Caption = 'C'#243'digo:'
     end
     object lbNomePnCadastroDeFuncionarios: TLabel
-      Left = 67
+      Left = 82
       Top = 68
       Width = 31
       Height = 13
       Caption = 'Nome:'
     end
     object lbCargoPnCadastroDeFuncionarios: TLabel
-      Left = 67
+      Left = 82
       Top = 92
       Width = 31
       Height = 13
       Caption = 'Cargo:'
     end
     object lbEnderecoPnCadastroDeFuncionarios: TLabel
-      Left = 49
+      Left = 64
       Top = 116
       Width = 49
       Height = 13
       Caption = 'Endere'#231'o:'
     end
     object lbTelefonePnCadastroDeFuncionarios: TLabel
-      Left = 53
+      Left = 68
       Top = 140
       Width = 45
       Height = 13
@@ -531,7 +533,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
     object cbCargoPnCadastroDeFuncionarios: TComboBox
       Left = 118
       Top = 88
-      Width = 241
+      Width = 163
       Height = 21
       ItemHeight = 13
       TabOrder = 6
@@ -541,6 +543,15 @@ object frFolhaDePagamento: TfrFolhaDePagamento
         'Programador'
         'Product Owner'
         'QA')
+    end
+    object btNovoPnCadastroDeFuncionarios: TButton
+      Left = 284
+      Top = 86
+      Width = 75
+      Height = 25
+      Caption = 'Novo'
+      TabOrder = 7
+      OnClick = btNovoPnCadastroDeFuncionariosClick
     end
   end
   object btConsultarTabela: TButton
@@ -560,6 +571,60 @@ object frFolhaDePagamento: TfrFolhaDePagamento
     Caption = 'Delete'
     TabOrder = 10
     OnClick = btDeleteClick
+  end
+  object pnCadastroDeCargos: TPanel
+    Left = 712
+    Top = 296
+    Width = 409
+    Height = 113
+    TabOrder = 11
+    Visible = False
+    object lbCadastroDeCargosPnCadastroDeCargos: TLabel
+      Left = 149
+      Top = 16
+      Width = 112
+      Height = 13
+      Caption = 'Cadastro de Cargos'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -5
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object lbNomeDoCargoPnCadastroDeCargos: TLabel
+      Left = 36
+      Top = 44
+      Width = 77
+      Height = 13
+      Caption = 'Nome do Cargo:'
+    end
+    object edNomeDoCargoPnCadastroDeCargos: TEdit
+      Left = 118
+      Top = 40
+      Width = 241
+      Height = 21
+      TabOrder = 0
+      OnExit = edCodigoPnCadastroDeFuncionariosExit
+    end
+    object btSalvarPnCadastroDeCargos: TButton
+      Left = 123
+      Top = 72
+      Width = 75
+      Height = 25
+      Caption = 'Salvar'
+      TabOrder = 1
+      OnClick = btSalvarPnCadastroDeCargosClick
+    end
+    object btFecharPnCadastroDeCargos: TButton
+      Left = 211
+      Top = 72
+      Width = 75
+      Height = 25
+      Caption = 'Fechar'
+      TabOrder = 2
+      OnClick = btFecharPnCadastroDeCargosClick
+    end
   end
   object dsFolhaDePagamentos: TDataSource
     DataSet = cdsFolhaDePagamentos
@@ -772,5 +837,27 @@ object frFolhaDePagamento: TfrFolhaDePagamento
     object cdsFolhaDePagamentosbdANO: TIntegerField
       FieldName = 'bdANO'
     end
+  end
+  object cdsCargos: TClientDataSet
+    Active = True
+    Aggregates = <>
+    Params = <>
+    Left = 744
+    Top = 368
+    Data = {
+      520000009619E0BD01000000180000000200000000000300000052000D626443
+      4F4449474F434152474F04000100000000000D62644E4F4D45444F434152474F
+      01004900000001000557494454480200020014000000}
+    object cdsCargosbdCODIGOCARGO: TIntegerField
+      FieldName = 'bdCODIGOCARGO'
+    end
+    object cdsCargosbdNOMEDOCARGO: TStringField
+      FieldName = 'bdNOMEDOCARGO'
+    end
+  end
+  object dsCargos: TDataSource
+    DataSet = cdsCargos
+    Left = 776
+    Top = 368
   end
 end
