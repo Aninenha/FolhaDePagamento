@@ -1,7 +1,7 @@
 object frFolhaDePagamento: TfrFolhaDePagamento
-  Left = 78
+  Left = 77
   Top = 59
-  Width = 1356
+  Width = 1355
   Height = 646
   Caption = 'Folha de Pagamento'
   Color = clBtnFace
@@ -595,12 +595,13 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Top = 200
       Width = 241
       Height = 73
+      TabStop = False
       Enabled = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clRed
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
-      Font.Style = []
+      Font.Style = [fsUnderline]
       Lines.Strings = (
         'Alterar o cargo do funcion'#225'rio n'#227'o vai alterar '
         'os registros j'#225' realizados na folha. '
@@ -616,7 +617,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
     Left = 712
     Top = 352
     Width = 409
-    Height = 113
+    Height = 201
     TabOrder = 10
     Visible = False
     object lbCadastroDeCargosPnCadastroDeCargos: TLabel
@@ -668,6 +669,33 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Enabled = False
       TabOrder = 2
       OnClick = btFecharPnCadastroDeCargosClick
+    end
+    object grCargos: TDBGrid
+      Left = 40
+      Top = 104
+      Width = 320
+      Height = 81
+      DataSource = dsCargos
+      TabOrder = 3
+      TitleFont.Charset = DEFAULT_CHARSET
+      TitleFont.Color = clWindowText
+      TitleFont.Height = -11
+      TitleFont.Name = 'MS Sans Serif'
+      TitleFont.Style = []
+      Columns = <
+        item
+          Expanded = False
+          FieldName = 'bdCODIGOCARGO'
+          Title.Caption = 'C'#243'digo'
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'bdNOMEDOCARGO'
+          Title.Caption = 'Nome do Cargo'
+          Width = 238
+          Visible = True
+        end>
     end
   end
   object dsFolhaDePagamentos: TDataSource

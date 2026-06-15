@@ -325,11 +325,13 @@ begin
      begin
        pAlteraEdCargoBaseadoEmCbNome;
      end;
-
-  if fRegistroExiste then
+  if (cbAnoGbFuncionario.ItemIndex <> -1) and (cbMesGbFuncionario.ItemIndex <> -1) then
      begin
-       pRetornarInformacoesDeFolha;
+       if fRegistroExiste then
+          pRetornarInformacoesDeFolha;
      end;
+
+
 end;
 
 procedure TfrFolhaDePagamento.btConsultarGbFuncionarioClick(Sender: TObject);
@@ -753,6 +755,15 @@ begin
   if edCodigoPnCadastroDeFuncionarios.Text = '' then
      exit;
 
+  // Paliativo para evitar o código da folha dar problema antes de corrigir o tipo do campo bdFolha e demais códigos
+  if StrToCurr(edCodigoPnCadastroDeFuncionarios.Text) > 9999 then
+     begin
+       ShowMessage('Valor máximo para campo é 9999');
+       edCodigoPnCadastroDeFuncionarios.Clear;
+       edCodigoPnCadastroDeFuncionarios.SetFocus;
+       Exit;
+     end;
+
   if fValidarCampoNumerico(edCodigoPnCadastroDeFuncionarios.Text) then
      begin
        edCodigoPnCadastroDeFuncionarios.Text:='';
@@ -833,6 +844,10 @@ end;
 procedure TfrFolhaDePagamento.grFolhaDePagamentosCellClick(
   Column: TColumn);
 begin
+  if cdsFolhaDePagamentos.IsEmpty then
+     Exit;
+
+
   cdsFolhaDePagamentos.IndexFieldNames := 'bdCODIGOFOLHA';
   // Pega o valor do campo selecionado e procura a chave no cds
   cdsFolhaDePagamentos.FindKey([grFolhaDePagamentos.Fields[0].Value]);
@@ -874,12 +889,19 @@ var
   wCodigo:string;
 begin
   wCodigo := IntToStr(cbMesGbFuncionario.ItemIndex + 1) + cbAnoGbFuncionario.Items[cbAnoGbFuncionario.ItemIndex] + '00' + IntToStr(cdsCadastroDeFuncionariosbdCODIGO.AsInteger);
-  if MessageDlg('Tem certeza que quer deletar o registro ' + cdsFolhaDePagamentosbdCODIGOFOLHA.AsString + '?',mtConfirmation,[mbYes,mbNo], 0) <> mrYes then
-    Exit;
+
 
   cdsFolhaDePagamentos.IndexFieldNames := 'bdCODIGOFOLHA';
   cdsFolhaDePagamentos.FindKey([StrToInt(wCodigo)]);
-  cdsFolhaDePagamentos.Delete;
+  if cdsFolhaDePagamentosbdCODIGOFOLHA.AsString = wCodigo then
+     begin
+       if MessageDlg('Tem certeza que quer deletar o registro ' + cdsFolhaDePagamentosbdCODIGOFOLHA.AsString + '?',mtConfirmation,[mbYes,mbNo], 0) <> mrYes then
+          begin
+            ShowMessage('Nenhuma folha selecionada.');
+            Exit;
+          end;
+       cdsFolhaDePagamentos.Delete;
+     end;
 
   pLimparCamposDaTelaPrincipal;
 end;
@@ -899,15 +921,14 @@ begin
   if cbMesGbFuncionario.ItemIndex = -1 then
      begin
        cbMesGbFuncionario.Text := '';
-     end
-  else
+       Exit;
+     end;
+  if (cbAnoGbFuncionario.ItemIndex <> -1) and (cbNomeGbFuncionario.ItemIndex <> -1) then
      begin
        if fRegistroExiste then
-          begin
-            // retorna as infos para os campos editáveis e combobox
-            pRetornarInformacoesDeFolha;
-          end;
+          pRetornarInformacoesDeFolha;
      end;
+
   pComportamentoBtLimpar;
 end;
 
@@ -917,14 +938,12 @@ begin
   if cbAnoGbFuncionario.ItemIndex = -1 then
      begin
        cbAnoGbFuncionario.Text := '';
-     end
-  else
+       Exit;
+     end;
+  if (cbNomeGbFuncionario.ItemIndex <> -1) and (cbMesGbFuncionario.ItemIndex <> -1) then
      begin
        if fRegistroExiste then
-          begin
-            // retorna as infos para os campos editáveis e combobox
-            pRetornarInformacoesDeFolha;
-          end;
+          pRetornarInformacoesDeFolha;
      end;
   pComportamentoBtLimpar;
 end;
@@ -989,7 +1008,7 @@ begin
 
   pnCadastroDeFuncionarios.Top :=112;
   pnCadastroDeFuncionarios.left :=96;
-  pnCadastroDeCargos.Top := 172;
+  pnCadastroDeCargos.Top := 152;
   pnCadastroDeCargos.Left := 96;
   wCount := 1;
   while  wCount <= cbCargoPnCadastroDeFuncionarios.Items.Count do
@@ -1171,6 +1190,7 @@ begin
   edCodigoPnCadastroDeFuncionarios.Clear;
   edNomePnCadastroDeFuncionarios.Clear;
   cbCargoPnCadastroDeFuncionarios.ItemIndex := -1;
+  cbCargoPnCadastroDeFuncionarios.Text:='';
   edEnderecoPnCadastroDeFuncionarios.Clear;
   edTelefonePnCadastroDeFuncionarios.Clear;
 end;
@@ -1205,6 +1225,9 @@ begin
   btSalvarPnCadastroDeCargos.TabOrder:=1;
   btFecharPnCadastroDeCargos.TabOrder:=2;
 end;
+
+
+
 
 end.
 

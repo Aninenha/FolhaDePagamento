@@ -1,7 +1,7 @@
 object frFolhaDePagamento: TfrFolhaDePagamento
-  Left = 78
+  Left = 77
   Top = 59
-  Width = 1354
+  Width = 1355
   Height = 646
   Caption = 'Folha de Pagamento'
   Color = clBtnFace
@@ -595,12 +595,13 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Top = 200
       Width = 241
       Height = 73
+      TabStop = False
       Enabled = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clRed
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
-      Font.Style = []
+      Font.Style = [fsUnderline]
       Lines.Strings = (
         'Alterar o cargo do funcion'#225'rio n'#227'o vai alterar '
         'os registros j'#225' realizados na folha. '
