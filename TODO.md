@@ -1,0 +1,88 @@
+- Ordenar btConsultarFuncionarios por código - ok
+- ShowMessage com aviso de salvo com sucesso ao cadastrar - ok
+- ShowMessage de erro ao colocar string no salario base não aparece - ok
+- ShowMessage ao colocar valor negativo esta com mensagem errada - ok
+- Limpar campos ao salvar seleção - ok 
+- Selecionar informações anteriores ao selecionar funcionario já salvo - ok
+- Colocar procedures no private - ok
+- Alterar calculos para padrão comum - ok
+- btCalcular traz erro se campos estiverem vazios - ok
+
+Alterações gerais:
+- Aliquota de INSS - seguir a tabela oficial do governo - ok
+- Adicionar folha por referência - um funcionário pode ter folha do mês 5, um do mês 6, etc - ok
+- Ao clicar no grid as informações sobem na tela - ok
+- Delete de registros de cdsFolhaDePagamento - ok
+
+Planos
+- btLimpar limpar campos de data também - ok
+- Validação campo Mês/Ano ao Salvar - ok
+- Ao selecionar nome do funcionário, só voltar as informações do campo se o mês e ano já tiverem um registro - ok
+- Impedir alteração do grid - ok
+- Adicionar campo de data no grid - ok
+- Alteração de registro de cdsFolhaDePagamento ao alterar informação em cdsCadastroDeFuncionarios - ok
+- Ordenar o cbNome por código ao invés de por entrada (itemindex = codigo) - ok
+- Não retorna cargo ao retornar infos por meio de clicar no grid - ok
+- Se o nome, mês e ano usado na folha existem, mesmo que em registros diferentes, é retornada uma folha anterior, o que não deveria acontecer - ok
+- Se altera o cargo do funcionário, e na folha há registros deste funcionário, o programa trava e não atualiza a folha - ok
+- é possível salvar a folha com os calculos errados ao alterar algum provento depois de apertar o botão calcular? - ok
+- criar função para gerar o código da folha - ok
+- retornar infos de folha se código já foi usado ao invés de se todos os registros existem - ok
+- Criar painel de cadastrar cargos novos - ok
+- Formatar apresentação dos valores - ok
+- Criar funções dos botões atualizando os devidos campos corretamente - ok
+- Limpar campos ao salvar novo cargo - ok
+- Mostrar mensagem de sucesso ao criar novo cargo - ok
+- Validar se cargo já existe antes de criar novo - ok
+- Adicionar no cds os cargos previamente criados - ok
+- ordenar grid ao clicar no titulo da coluna - ok
+- Desabilitar e reabilitar campos cbAno e cbMes quando cadastrando funcionario - ok
+- Mover telas de cadastro ao criar o form para não rodar código desnecessário o tempo todo - ok
+- Arrumar a taborder e comando de taborder - ok
+- Validação do código de cadastro do funcionario - ok
+- Validação de espaço nos campos - ok
+- Arrumar taborder (botões vem depois de group box) - ok
+- Corrigir loop infinito ao editar nome com registro de folha - ok
+- Alterar mensagem ao editar cadastro - ok
+- Centralizar os botões entre grid e gb - ok
+- Desabilitar botão delete quando grid está vazio - ok
+- desabilitar botão limpar quando campos estão vazios - ok
+- Verificar validação de números negativos nos campos de proventos - ok
+- Verificar habilitação do botão salvar ao trocar nome/mês/ano - ok
+- Ao alterar informações dos proventos, desabilitar botão salvar - ok
+- Impedir valores negativos nos proventos (limpar campo e colocar o foco nele mesmo ao invés do próximo) - ok
+- Impedir de salvar valores negativos - ok
+- Se não tem nenhum funcionário cadastrado, mostrar uma mensagem diferente - ok
+- Validar valores irrisórios de salário (valores muito baixos) - ok
+- Arrumar acessibilidade com set focus nos campos de proventos (nem se está vazio ele não deixa sair pra outros campos ou botões mesmo com o mouse) - ok
+- Arrumar o problema de não ser possível colocar 0 sem arrumar a validação dos valores irrisórios - ok
+- Arrumar o problema dos valores irrisórios novamente - ok
+- Adicionar aviso de limite de caracteres pro código do funcionário - ok
+- Arrumar erro ao calcular deixando campos vazios - ok
+- Arrumar o calculo dos proventos para não considerar os campos vazios como vazios, mas sim como 0 - ok
+- limpar os campos do cadastro de funcionários ao fechar o painel - ok
+- Adicionar mensagem avisando que o cargo das folhas anteriores não é alterado visto que promoções e mudanças de cargo são mudança prevista no dia a dia dos funcionários (se quiser alterar o cargo em alguma das folhas, tem que selecionar elas e salvar novamente) - ok
+- Impedir o botão delete se nenhuma folha está selecionada - ok
+- Ao abrir o cadastro de funcionários, zerar os campos da tela da folha - ok
+- Descobrir oq acontece pro estouro de memória ao trocar o mês da folha com muita frequencia - não sei verificar
+- adicionar verificação de campos antes de lançar a mensagem de se limpa ou não - ok
+- Arrumar taborder da função - ok
+- Criar tabela de visualização dos cargos - Ok
+- Ajustar habilitação dos campos do cadastro de cargos para não afetar a taborder do cadastro de funcionarios - ok
+
+Em trabalho:
+- Criar salário base para cada cargo cadastrado e associar com as folhas de pagamento
+- Tabela de visualização de cargos visivel por botão 'Consultar' no painel de cadastro de cargos
+- Criar forma de editar nome dos cargos na tabela
+- Criar forma de deletar nomes cadastrados na tabela
+
+A fazer:
+- Highlight vermelho borda de campos vazios ou indevidamente preenchidos
+- Adicionar imagem ao lado de campos vazios ou indevidamente preenchidos
+- adicionar filtro por funcionário/codigo/data/cargo
+- reciclar função de retornar nome por item index (muito utilizado mas muito verboso também)
+- reciclar função de retornar item index a partir do texto no cb
+- refatorar ações com .clear quando limpar campos editáveis (ou com '0,00' a depender do caso)
+- Criar uma forma de verificar se na string existe algum outro número além de 0
+- Criar uma forma de validar se a string é composta apenas por números (e no caso de currency, uma única vírgula)
+- Criar um MessageDlg com mtWarning para alertar sobre a alteração de cargos
