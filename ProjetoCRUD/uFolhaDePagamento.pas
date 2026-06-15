@@ -99,6 +99,8 @@ type
     dsCargos: TDataSource;
     cdsCargosbdCODIGOCARGO: TIntegerField;
     cdsCargosbdNOMEDOCARGO: TStringField;
+    memoAvisoPnCadastroDeFuncionarios: TMemo;
+    grCargos: TDBGrid;
     procedure btCadastrarGbFuncionarioClick(Sender: TObject);
     procedure btFecharPnCadastroDeFuncionariosClick(Sender: TObject);
     procedure btCalcularClick(Sender: TObject);
@@ -123,6 +125,17 @@ type
     procedure FormCreate(Sender: TObject);
     procedure btSalvarPnCadastroDeCargosClick(Sender: TObject);
     procedure grFolhaDePagamentosTitleClick(Column: TColumn);
+    procedure dsFolhaDePagamentosDataChange(Sender: TObject;
+      Field: TField);
+    procedure edINSSGbDescontosChange(Sender: TObject);
+    procedure edIRRFGbDescontosChange(Sender: TObject);
+    procedure edValeTransporteGbDescontosChange(Sender: TObject);
+    procedure edTotalProventosGbResultadoChange(Sender: TObject);
+    procedure edTotalDescontosGbResultadoChange(Sender: TObject);
+    procedure edSalarioLiquidoGbResultadoChange(Sender: TObject);
+    procedure edSalarioBaseGbProventosChange(Sender: TObject);
+    procedure edHorasExtrasGbProventosChange(Sender: TObject);
+    procedure edOutrosGbProventosChange(Sender: TObject);
   private
     procedure pEnviarCadastroDeFuncionarios;
     procedure pCalcularProventos;
@@ -149,6 +162,13 @@ type
     procedure pCriarNovoCargoNoCds(prNomeDoCargo:string;prCodigo:integer);
     procedure pDesabilitarCamposDaTelaDeCadastroDeFuncionario;
     procedure pHabillitarCamposDaTelaDeCadastroDeFuncionario;
+    procedure pComportamentoBtLimpar;
+    function fSalarioValido(prValor:currency):boolean;
+    function fSalarioValidoOuInexistente(prTexto:string):boolean;
+    procedure pLimparCamposDoPainelDeCadastro;
+    function fCamposDaTelaPrincipalLimpos:boolean;
+    procedure pAjustarTabOrderDoPnCadastroDeFuncionarios;
+    procedure pAjustarTabOrderDoPnCadastroDeCargo;
   public
     { Public declarations }
   end;
@@ -158,12 +178,15 @@ var
 
 implementation
 
+uses Math;
+
 {$R *.dfm}
 
 procedure TfrFolhaDePagamento.btCadastrarGbFuncionarioClick(
   Sender: TObject);
 begin
   pnCadastroDeFuncionarios.Visible:=true;
+  pAjustarTabOrderDoPnCadastroDeFuncionarios;
   pDesabilitarCamposDaTelaPrincipal;
 end;
 
@@ -171,19 +194,31 @@ procedure TfrFolhaDePagamento.btFecharPnCadastroDeFuncionariosClick(
   Sender: TObject);
 begin
   pnCadastroDeFuncionarios.Visible:=false;
+  pnCadastroDeFuncionarios.TabStop:=false;
   pHabilitarCamposDaTelaPrincipal;
+
+  if fCamposDaTelaPrincipalLimpos then
+     if MessageDlg('Você possui registros pendentes na Folha de Pagamento. Deseja reutilizar?', mtConfirmation, [mbYes,mbNo], 0) = mrNo then
+        pLimparCamposDaTelaPrincipal;
+
+  pLimparCamposDoPainelDeCadastro;
 end;
 
 procedure TfrFolhaDePagamento.btCalcularClick(Sender: TObject);
 var
   wSalarioBase:Currency;
 begin
-  if fValidarCampoVazioEmEdit(edSalarioBaseGbProventos) or fValidarCampoVazioEmEdit(edHorasExtrasGbProventos) or fValidarCampoVazioEmEdit(edOutrosGbProventos) then
+  if fValidarCampoVazioEmEdit(edHorasExtrasGbProventos) then
+     edHorasExtrasGbProventos.Text:='0,00';
+  if fValidarCampoVazioEmEdit(edOutrosGbProventos) then
+     edOutrosGbProventos.Text:='0,00';
+  if fValidarCampoVazioEmEdit(edSalarioBaseGbProventos) then
      begin
-       ShowMessage('Preencha todos os campos!');
+       ShowMessage('Preencha o campo salário!');
        Exit;
      end;
-  if fIsNan(edSalarioBaseGbProventos.Text) or fIsNan(edHorasExtrasGbProventos.Text) or fIsNan(edOutrosGbProventos.Text) then
+
+  if fIsNan(edSalarioBaseGbProventos.Text) or (fIsNan(edHorasExtrasGbProventos.Text)and (edHorasExtrasGbProventos.Text <> '')) or (fIsNan(edOutrosGbProventos.Text) and (edOutrosGbProventos.Text <>'')) then
      begin
        ShowMessage('Não coloque valores inválidos nos campos de valor monetário!');
        Exit;
@@ -205,8 +240,15 @@ end;
 
 procedure TfrFolhaDePagamento.btSalvarPnCadastroDeFuncionariosClick(
   Sender: TObject);
+var
+  wMensagem : string;
 begin
-  if (edCodigoPnCadastroDeFuncionarios.Text = '') or (edNomePnCadastroDeFuncionarios.Text = '') or (cbCargoPnCadastroDeFuncionarios.ItemIndex = -1) or (edEnderecoPnCadastroDeFuncionarios.Text = '') or (edTelefonePnCadastroDeFuncionarios.Text = '') then
+  if fIsNan(edCodigoPnCadastroDeFuncionarios.Text) then
+    begin
+      ShowMessage('Insira um código válido!');
+      Exit;
+    end;
+  if (trim(edCodigoPnCadastroDeFuncionarios.Text) = '') or (trim(edNomePnCadastroDeFuncionarios.Text) = '') or (cbCargoPnCadastroDeFuncionarios.ItemIndex = -1) or (trim(edEnderecoPnCadastroDeFuncionarios.Text) = '') or (trim(edTelefonePnCadastroDeFuncionarios.Text) = '') then
      begin
        ShowMessage('Preencha todos os campos!');
        exit;
@@ -222,6 +264,7 @@ begin
        Exit;
      end;
 
+  wMensagem := 'Cadastro realizado com sucesso!';
 
   cdsCadastroDeFuncionarios.IndexFieldNames := 'bdCODIGO';
   if cdsCadastroDeFuncionarios.FindKey([StrToInt(edCodigoPnCadastroDeFuncionarios.text)]) then
@@ -231,8 +274,9 @@ begin
        cdsFolhaDePagamentos.First;
        while not cdsFolhaDePagamentos.Eof do
          begin
-           if cdsFolhaDePagamentos.FindKey([StrToInt(edCodigoPnCadastroDeFuncionarios.text)]) then
+           if cdsFolhaDePagamentos.FieldByName('bdCODIGO').AsInteger = StrToInt(edCodigoPnCadastroDeFuncionarios.text) then
               begin
+                // Altera apenas o nome pois o cargo não deve ser alterado nos anteriores
                 cdsFolhaDePagamentos.Edit;
                 cdsFolhaDePagamentosbdNOME.AsString := edNomePnCadastroDeFuncionarios.Text;
                 cdsFolhaDePagamentos.Post;
@@ -242,6 +286,7 @@ begin
        //deleta o item do index cujo nome corresponda o nome do codigo procurado
        cbNomeGbFuncionario.Items.Delete(cbNomeGbFuncionario.Items.IndexOf(cdsCadastroDeFuncionariosbdNOME.AsString));
        cdsCadastroDeFuncionarios.Edit;
+       wMensagem:= 'Cadastro editado com sucesso!';
      end
   else
      begin
@@ -251,13 +296,9 @@ begin
   pEnviarCadastroDeFuncionarios;
   pAtualizarCbNome;
 
-  ShowMessage('Cadastro realizado com sucesso!');
+  ShowMessage(wMensagem);
 
-  edCodigoPnCadastroDeFuncionarios.Clear;
-  edNomePnCadastroDeFuncionarios.Clear;
-  cbCargoPnCadastroDeFuncionarios.ItemIndex := -1;
-  edEnderecoPnCadastroDeFuncionarios.Clear;
-  edTelefonePnCadastroDeFuncionarios.Clear;
+  pLimparCamposDoPainelDeCadastro;
 
   edCodigoPnCadastroDeFuncionarios.SetFocus;
 end;
@@ -274,6 +315,8 @@ end;
 
 procedure TfrFolhaDePagamento.cbNomeGbFuncionarioChange(Sender: TObject);
 begin
+  btSalvar.Enabled := false;
+  pComportamentoBtLimpar;
   if cbNomeGbFuncionario.ItemIndex = -1 then
      begin
        edCargoGbFuncionario.Text := '';
@@ -285,8 +328,6 @@ begin
 
   if fRegistroExiste then
      begin
-       cdsFolhaDePagamentos.IndexFieldNames := 'bdCODIGOFOLHA';
-       cdsFolhaDePagamentos.FindKey([fCriaCodigo]);
        pRetornarInformacoesDeFolha;
      end;
 end;
@@ -295,6 +336,7 @@ procedure TfrFolhaDePagamento.btConsultarGbFuncionarioClick(Sender: TObject);
 var
   wFuncionarios:string;
 begin
+
   wFuncionarios := '';
   cdsCadastroDeFuncionarios.IndexFieldNames := 'bdCODIGO';
   cdsCadastroDeFuncionarios.First;
@@ -304,7 +346,8 @@ begin
       wFuncionarios := wFuncionarios + 'Código: ' + IntToStr(cdsCadastroDeFuncionariosbdCODIGO.AsInteger) + '| Nome: ' + cdsCadastroDeFuncionariosbdNOME.AsString + '.' + #13;
       cdsCadastroDeFuncionarios.Next;
     end;
-
+  if cdsCadastroDeFuncionarios.IsEmpty then
+    wFuncionarios := 'Nenhum funcionário cadastrado!';
   ShowMessage(wFuncionarios);
 end;
 
@@ -323,6 +366,7 @@ begin
   wSalarioBase := StrToCurrDef(edSalarioBaseGbProventos.Text,0);
   wHorasExtras := StrToCurrDef(edHorasExtrasGbProventos.Text,0);
   wOutros := StrToCurrDef(edOutrosGbProventos.Text,0);
+
   wTotal := wSalarioBase+wHorasExtras+wOutros;
   edTotalGbProventos.Text := CurrToStrF(wTotal,ffFixed,2);
 end;
@@ -330,21 +374,117 @@ end;
 procedure TfrFolhaDePagamento.edSalarioBaseGbProventosExit(
   Sender: TObject);
 begin
+  //Se o campo está vazio não precisa fazer os calculos ou validar nada
+  if edSalarioBaseGbProventos.Text = '' then
+     Exit;
+
+  if (not fIsNan(edSalarioBaseGbProventos.Text)) and (StrToCurr(edSalarioBaseGbProventos.Text) <0) then
+     begin
+       ShowMessage('Não são permitidos valores abaixo de 0,01 exceto 0');
+       edSalarioBaseGbProventos.Text:='';
+       btSalvar.Enabled := false;
+       edSalarioBaseGbProventos.SetFocus;
+       Exit;
+     end;
+
+  if fIsNan(edSalarioBaseGbProventos.Text) then
+     begin
+       edSalarioBaseGbProventos.Text := '';
+       edSalarioBaseGbProventos.SetFocus;
+     end;
   if not fValidarCampoVazioEmEdit(edSalarioBaseGbProventos) then
-     pCalcularProventos;
+     begin
+       if fSalarioValidoOuInexistente(edSalarioBaseGbProventos.Text) then
+          pCalcularProventos
+       else
+          begin
+            ShowMessage('Não são permitidos valores abaixo de 0,01 exceto 0');
+            edSalarioBaseGbProventos.Text:='';
+            edSalarioBaseGbProventos.SetFocus;
+            Exit;
+          end;
+     end
+  else
+     edSalarioBaseGbProventos.Text:='';
+
+  pComportamentoBtLimpar;
 end;
 
 procedure TfrFolhaDePagamento.edHorasExtrasGbProventosExit(
   Sender: TObject);
 begin
+  //Se o campo está vazio não precisa fazer os calculos ou validar nada
+  if edHorasExtrasGbProventos.Text = '' then
+     Exit;
+
+  if (not fIsNan(edHorasExtrasGbProventos.Text)) and (StrToCurr(edHorasExtrasGbProventos.Text) <0) then
+     begin
+       ShowMessage('Não são permitidos valores abaixo de 0,01 exceto 0');
+       edHorasExtrasGbProventos.Text:='';
+       btSalvar.Enabled := false;
+       edHorasExtrasGbProventos.SetFocus;
+       Exit;
+     end;
+
+  if fIsNan(edHorasExtrasGbProventos.Text) then
+     begin
+       edHorasExtrasGbProventos.Text := '';
+       edHorasExtrasGbProventos.SetFocus;
+     end;
+
   if not fValidarCampoVazioEmEdit(edHorasExtrasGbProventos) then
-     pCalcularProventos;
+     begin
+       if fSalarioValidoOuInexistente(edHorasExtrasGbProventos.Text) then
+          pCalcularProventos
+       else
+          begin
+            ShowMessage('Não são permitidos valores abaixo de 0.01');
+            edHorasExtrasGbProventos.Text:='';
+            Exit;
+          end;
+     end
+  else
+     edHorasExtrasGbProventos.Text:='';
+
+  pComportamentoBtLimpar;
 end;
 
 procedure TfrFolhaDePagamento.edOutrosGbProventosExit(Sender: TObject);
 begin
+  //Se o campo está vazio não precisa fazer os calculos ou validar nada
+  if edOutrosGbProventos.Text = '' then
+     Exit;
+
+  if (not fIsNan(edOutrosGbProventos.Text)) and (StrToCurr(edOutrosGbProventos.Text) <0) then
+     begin
+       ShowMessage('Não são permitidos valores abaixo de 0');
+       edOutrosGbProventos.Text:='';
+       btSalvar.Enabled := false;
+       edOutrosGbProventos.SetFocus;
+       Exit;
+     end;
+  if fIsNan(edOutrosGbProventos.Text) then
+     begin
+       edOutrosGbProventos.Text := '';
+       edOutrosGbProventos.SetFocus;
+     end;
+
   if not fValidarCampoVazioEmEdit(edOutrosGbProventos) then
-     pCalcularProventos;
+     begin
+       if fSalarioValidoOuInexistente(edOutrosGbProventos.Text) then
+          pCalcularProventos
+       else
+          begin
+            ShowMessage('Não são permitidos valores abaixo de 0.01');
+            edOutrosGbProventos.Text:= '';
+            edOutrosGbProventos.SetFocus;
+            Exit;
+          end;
+     end
+  else
+     edOutrosGbProventos.Text:= '';
+
+  pComportamentoBtLimpar;
 end;
 
 function TfrFolhaDePagamento.fCalcularINSS(
@@ -431,11 +571,14 @@ end;
 procedure TfrFolhaDePagamento.edTotalGbProventosChange(Sender: TObject);
 begin
   edTotalProventosGbResultado.Text := edTotalGbProventos.Text;
+
+  pComportamentoBtLimpar;
 end;
 
 procedure TfrFolhaDePagamento.edTotalGbDescontosChange(Sender: TObject);
 begin
   edTotalDescontosGbResultado.Text := edTotalGbDescontos.Text;
+  pComportamentoBtLimpar;
 end;
 
 procedure TfrFolhaDePagamento.btSalvarClick(Sender: TObject);
@@ -554,9 +697,11 @@ begin
   edOutrosGbProventos.Enabled := True;
   btConsultarTabela.Enabled := True;
   btCalcular.Enabled := True;
-  btLimpar.Enabled := True;
   btDelete.Enabled := True;
   grFolhaDePagamentos.Enabled := True;
+
+  //Verifica se habilita ou não o btLimpar
+  pComportamentoBtLimpar;
 
   //Desativa ReadOnly
   edSalarioBaseGbProventos.ReadOnly := False;
@@ -573,18 +718,21 @@ end;
 
 procedure TfrFolhaDePagamento.pDefinirTabOrderDaTelaPrincipal;
 begin
+  gbFuncionario.TabOrder:= 0;
   cbNomeGbFuncionario.TabOrder:= 0;
   cbMesGbFuncionario.TabOrder := 1;
   cbAnoGbFuncionario.TabOrder := 2;
-  btConsultarGbFuncionario.TabOrder:= 3;
-  btCadastrarGbFuncionario.TabOrder:= 4;
+  btConsultarGbFuncionario.TabOrder:= 4;
+  btCadastrarGbFuncionario.TabOrder:= 3;
+  gbProventos.TabOrder:=1;
   edSalarioBaseGbProventos.TabOrder:= 1;
   edHorasExtrasGbProventos.TabOrder:= 2;
   edOutrosGbProventos.TabOrder:=3;
-  btCalcular.TabOrder:= 1;
-  btSalvar.TabOrder:=2;
-  btLimpar.TabOrder:=3;
-  btConsultarTabela.TabOrder:=4;
+  btCalcular.TabOrder:= 2;
+  btSalvar.TabOrder:= 3;
+  btLimpar.TabOrder:= 4;
+  btConsultarTabela.TabOrder:= 5;
+  btDelete.TabOrder:= 6;
 end;
 
 procedure TfrFolhaDePagamento.pDefinirTabOrderDoPnCadastroDeFuncionario;
@@ -602,8 +750,15 @@ end;
 procedure TfrFolhaDePagamento.edCodigoPnCadastroDeFuncionariosExit(
   Sender: TObject);
 begin
+  if edCodigoPnCadastroDeFuncionarios.Text = '' then
+     exit;
+
   if fValidarCampoNumerico(edCodigoPnCadastroDeFuncionarios.Text) then
-     Exit;
+     begin
+       edCodigoPnCadastroDeFuncionarios.Text:='';
+       edCodigoPnCadastroDeFuncionarios.SetFocus;
+       Exit;
+     end;
 
   cdsCadastroDeFuncionarios.IndexFieldNames := 'bdCODIGO';
   if cdsCadastroDeFuncionarios.FindKey([StrToInt(edCodigoPnCadastroDeFuncionarios.Text)]) then
@@ -618,10 +773,22 @@ end;
 function TfrFolhaDePagamento.fValidarCampoNumerico(
   prText: string): boolean;
 begin
-  Result := false;
+  Result := False;
+
+  if StrToCurrDef(prText,-1)> 2147483647 then
+     begin
+       ShowMessage('Valor máximo para o campo é 2147483647');
+       Result := true;
+     end;
 
   if StrToIntDef(prText,-1) = -1 then
      Result := true;
+
+  if Length(prText) > 10 then
+     begin
+       ShowMessage('Valor máximo para o campo é 2147483647');
+       Result := true;
+     end;
 end;
 
 function TfrFolhaDePagamento.fValidarCampoVazioEmEdit(
@@ -638,7 +805,7 @@ end;
 function TfrFolhaDePagamento.fIsNan(prText: string): boolean;
 begin
   Result := false;
-
+  // Se não for um número retorna true
   if (StrToCurrDef(prText,0) = 0) and (StrToCurrDef(prText , -1) = -1) then
      Result := true;
 end;
@@ -703,9 +870,15 @@ begin
 end;
 
 procedure TfrFolhaDePagamento.btDeleteClick(Sender: TObject);
+var
+  wCodigo:string;
 begin
+  wCodigo := IntToStr(cbMesGbFuncionario.ItemIndex + 1) + cbAnoGbFuncionario.Items[cbAnoGbFuncionario.ItemIndex] + '00' + IntToStr(cdsCadastroDeFuncionariosbdCODIGO.AsInteger);
+  if MessageDlg('Tem certeza que quer deletar o registro ' + cdsFolhaDePagamentosbdCODIGOFOLHA.AsString + '?',mtConfirmation,[mbYes,mbNo], 0) <> mrYes then
+    Exit;
+
   cdsFolhaDePagamentos.IndexFieldNames := 'bdCODIGOFOLHA';
-  cdsFolhaDePagamentos.FindKey([StrToInt(IntToStr(cbMesGbFuncionario.ItemIndex + 1) + cbAnoGbFuncionario.Items[cbAnoGbFuncionario.ItemIndex] + '00' + IntToStr(cdsCadastroDeFuncionariosbdCODIGO.AsInteger))]);
+  cdsFolhaDePagamentos.FindKey([StrToInt(wCodigo)]);
   cdsFolhaDePagamentos.Delete;
 
   pLimparCamposDaTelaPrincipal;
@@ -722,24 +895,38 @@ end;
 
 procedure TfrFolhaDePagamento.cbMesGbFuncionarioChange(Sender: TObject);
 begin
-  if fRegistroExiste then
+  btSalvar.Enabled := false;
+  if cbMesGbFuncionario.ItemIndex = -1 then
      begin
-       // retorna as infos para os campos editáveis e combobox
-       cdsFolhaDePagamentos.IndexFieldNames := 'bdCODIGOFOLHA';
-       cdsFolhaDePagamentos.FindKey([fCriaCodigo]);
-       pRetornarInformacoesDeFolha;
+       cbMesGbFuncionario.Text := '';
+     end
+  else
+     begin
+       if fRegistroExiste then
+          begin
+            // retorna as infos para os campos editáveis e combobox
+            pRetornarInformacoesDeFolha;
+          end;
      end;
+  pComportamentoBtLimpar;
 end;
 
 procedure TfrFolhaDePagamento.cbAnoGbFuncionarioChange(Sender: TObject);
 begin
-  if fRegistroExiste then
+  btSalvar.Enabled := false;
+  if cbAnoGbFuncionario.ItemIndex = -1 then
      begin
-       // retorna as infos para os campos editáveis e combobox
-       cdsFolhaDePagamentos.IndexFieldNames := 'bdCODIGOFOLHA';
-       cdsFolhaDePagamentos.FindKey([fCriaCodigo]);
-       pRetornarInformacoesDeFolha;
+       cbAnoGbFuncionario.Text := '';
+     end
+  else
+     begin
+       if fRegistroExiste then
+          begin
+            // retorna as infos para os campos editáveis e combobox
+            pRetornarInformacoesDeFolha;
+          end;
      end;
+  pComportamentoBtLimpar;
 end;
 
 procedure TfrFolhaDePagamento.pAtualizarCbNome;
@@ -772,6 +959,11 @@ procedure TfrFolhaDePagamento.btNovoPnCadastroDeFuncionariosClick(
 begin
   pDesabilitarCamposDaTelaDeCadastroDeFuncionario;
   pnCadastroDeCargos.Visible := true;
+  edNomeDoCargoPnCadastroDeCargos.Enabled:=true;
+  edNomeDoCargoPnCadastroDeCargos.ReadOnly:=false;
+  btSalvarPnCadastroDeCargos.Enabled:=true;
+  btFecharPnCadastroDeCargos.Enabled:=true;
+  pAjustarTabOrderDoPnCadastroDeCargo;
   edNomeDoCargoPnCadastroDeCargos.SetFocus;
 end;
 
@@ -779,7 +971,14 @@ procedure TfrFolhaDePagamento.btFecharPnCadastroDeCargosClick(
   Sender: TObject);
 begin
   pnCadastroDeCargos.Visible := false;
+  edNomeDoCargoPnCadastroDeCargos.Enabled:=false;
+  edNomeDoCargoPnCadastroDeCargos.ReadOnly:=true;
+  btSalvarPnCadastroDeCargos.Enabled:=false;
+  btFecharPnCadastroDeCargos.Enabled:=false;
+  pnCadastroDeCargos.TabStop:=false;
   pHabillitarCamposDaTelaDeCadastroDeFuncionario;
+  edNomeDoCargoPnCadastroDeCargos.Clear;
+  pAjustarTabOrderDoPnCadastroDeFuncionarios;
 end;
 
 procedure TfrFolhaDePagamento.FormCreate(Sender: TObject);
@@ -798,11 +997,19 @@ begin
       pCriarNovoCargoNoCDS(cbCargoPnCadastroDeFuncionarios.Items[wCount-1],wCount);
       wCount := wCount + 1;
     end;
+
+  cdsCargos.IndexFieldNames:='bdCODIGOCARGO';
+
 end;
 
 procedure TfrFolhaDePagamento.btSalvarPnCadastroDeCargosClick(
   Sender: TObject);
 begin
+  if trim(edNomeDoCargoPnCadastroDeCargos.Text) = '' then
+    begin
+      ShowMessage('Preencha o nome do cargo!');
+      Exit;
+    end;
   pValidarECriarNovoCargo(edNomeDoCargoPnCadastroDeCargos.Text);
   edNomeDoCargoPnCadastroDeCargos.Clear;
 end;
@@ -871,8 +1078,134 @@ begin
   edCodigoPnCadastroDeFuncionarios.SetFocus;
 end;
 
+procedure TfrFolhaDePagamento.dsFolhaDePagamentosDataChange(
+  Sender: TObject; Field: TField);
+begin
+  if not cdsFolhaDePagamentos.IsEmpty then
+    btDelete.Enabled := true
+  else
+    btDelete.Enabled := false;
+end;
+
+procedure TfrFolhaDePagamento.pComportamentoBtLimpar;
+begin
+  if (cbNomeGbFuncionario.ItemIndex <> -1) or (cbMesGbFuncionario.ItemIndex <> -1) or (cbAnoGbFuncionario.ItemIndex <> -1) or (edCargoGbFuncionario.Text <> '') or (edSalarioBaseGbProventos.Text <> '') or (edHorasExtrasGbProventos.Text <> '') or (edOutrosGbProventos.Text <> '') or (edTotalGbProventos.Text <> '') or (edIRRFGbDescontos.Text <> '') or (edINSSGbDescontos.Text <> '') or (edValeTransporteGbDescontos.Text <> '') or (edTotalGbDescontos.Text <> '') or (edTotalProventosGbResultado.Text <> '') or (edTotalDescontosGbResultado.Text <> '') or (edSalarioLiquidoGbResultado.Text <> '') then
+      btLimpar.Enabled := true
+  else
+      btLimpar.Enabled := false;
+end;
+
+procedure TfrFolhaDePagamento.edINSSGbDescontosChange(Sender: TObject);
+begin
+  pComportamentoBtLimpar;
+end;
+
+procedure TfrFolhaDePagamento.edIRRFGbDescontosChange(Sender: TObject);
+begin
+  pComportamentoBtLimpar;
+end;
+
+procedure TfrFolhaDePagamento.edValeTransporteGbDescontosChange(
+  Sender: TObject);
+begin
+  pComportamentoBtLimpar;
+end;
+
+procedure TfrFolhaDePagamento.edTotalProventosGbResultadoChange(
+  Sender: TObject);
+begin
+  pComportamentoBtLimpar;
+end;
+
+procedure TfrFolhaDePagamento.edTotalDescontosGbResultadoChange(
+  Sender: TObject);
+begin
+  pComportamentoBtLimpar;
+end;
+
+procedure TfrFolhaDePagamento.edSalarioLiquidoGbResultadoChange(
+  Sender: TObject);
+begin
+  pComportamentoBtLimpar;
+end;
+
+procedure TfrFolhaDePagamento.edSalarioBaseGbProventosChange(
+  Sender: TObject);
+begin
+  btSalvar.Enabled := false;
+end;
+
+procedure TfrFolhaDePagamento.edHorasExtrasGbProventosChange(
+  Sender: TObject);
+begin
+  btSalvar.Enabled := false;
+end;
+
+procedure TfrFolhaDePagamento.edOutrosGbProventosChange(Sender: TObject);
+begin
+  btSalvar.Enabled:=false;
+end;
+
+function TfrFolhaDePagamento.fSalarioValido(prValor: currency): boolean;
+begin
+  Result := false;
+  if prValor >= 0.01 then
+     Result:= true;
+end;
+
+function TfrFolhaDePagamento.fSalarioValidoOuInexistente(
+  prTexto: string): boolean;
+begin
+  Result:= false;
+  if (prTexto = '0') or (prTexto = '0,0') or (prTexto = '0,00') then
+     Result:= true
+  else
+     begin
+       if fSalarioValido(StrToCurr(prTexto)) then
+          Result:=true;
+     end;
+end;
+
+procedure TfrFolhaDePagamento.pLimparCamposDoPainelDeCadastro;
+begin
+  edCodigoPnCadastroDeFuncionarios.Clear;
+  edNomePnCadastroDeFuncionarios.Clear;
+  cbCargoPnCadastroDeFuncionarios.ItemIndex := -1;
+  edEnderecoPnCadastroDeFuncionarios.Clear;
+  edTelefonePnCadastroDeFuncionarios.Clear;
+end;
+
+function TfrFolhaDePagamento.fCamposDaTelaPrincipalLimpos: boolean;
+begin
+  Result:=false;
+  if (cbNomeGbFuncionario.ItemIndex <> -1) or (cbMesGbFuncionario.ItemIndex <> -1) or (cbAnoGbFuncionario.ItemIndex <> -1) or (edSalarioBaseGbProventos.Text <> '') or (edOutrosGbProventos.Text <> '') then
+     Result:=true;
+end;
+
+procedure TfrFolhaDePagamento.pAjustarTabOrderDoPnCadastroDeFuncionarios;
+begin
+  pnCadastroDeFuncionarios.TabStop:=true;
+  pDesabilitarCamposDaTelaPrincipal;
+  pnCadastroDeCargos.TabStop:=False;
+  pnCadastroDeFuncionarios.TabOrder:=0;
+  edCodigoPnCadastroDeFuncionarios.TabOrder:=0;
+  edNomePnCadastroDeFuncionarios.TabOrder:=1;
+  cbCargoPnCadastroDeFuncionarios.TabOrder:=2;
+  edEnderecoPnCadastroDeFuncionarios.TabOrder:=3;
+  edTelefonePnCadastroDeFuncionarios.TabOrder:=4;
+  btSalvarPnCadastroDeFuncionarios.TabOrder:=5;
+  btFecharPnCadastroDeFuncionarios.TabOrder:=6;
+end;
+
+procedure TfrFolhaDePagamento.pAjustarTabOrderDoPnCadastroDeCargo;
+begin
+  pnCadastroDeFuncionarios.TabStop:=false;
+  pnCadastroDeCargos.TabOrder:=0;
+  edNomeDoCargoPnCadastroDeCargos.TabOrder:=0;
+  btSalvarPnCadastroDeCargos.TabOrder:=1;
+  btFecharPnCadastroDeCargos.TabOrder:=2;
+end;
+
 end.
-
-
 
 

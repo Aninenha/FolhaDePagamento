@@ -1,7 +1,7 @@
 object frFolhaDePagamento: TfrFolhaDePagamento
-  Left = 201
-  Top = 119
-  Width = 1166
+  Left = 78
+  Top = 59
+  Width = 1354
   Height = 646
   Caption = 'Folha de Pagamento'
   Color = clBtnFace
@@ -14,6 +14,25 @@ object frFolhaDePagamento: TfrFolhaDePagamento
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
+  object btDelete: TButton
+    Left = 440
+    Top = 381
+    Width = 75
+    Height = 25
+    Caption = 'Delete'
+    Enabled = False
+    TabOrder = 5
+    OnClick = btDeleteClick
+  end
+  object btConsultarTabela: TButton
+    Left = 117
+    Top = 381
+    Width = 75
+    Height = 25
+    Caption = 'Consultar'
+    TabOrder = 6
+    OnClick = btConsultarTabelaClick
+  end
   object gbFuncionario: TGroupBox
     Left = 48
     Top = 40
@@ -109,7 +128,11 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       TabOrder = 2
       OnChange = cbAnoGbFuncionarioChange
       Items.Strings = (
-        '2026')
+        '2026'
+        '2027'
+        '2028'
+        '2029'
+        '2030')
     end
     object btConsultarGbFuncionario: TButton
       Left = 446
@@ -163,6 +186,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Width = 121
       Height = 21
       TabOrder = 0
+      OnChange = edSalarioBaseGbProventosChange
       OnExit = edSalarioBaseGbProventosExit
     end
     object edHorasExtrasGbProventos: TEdit
@@ -171,6 +195,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Width = 121
       Height = 21
       TabOrder = 1
+      OnChange = edHorasExtrasGbProventosChange
       OnExit = edHorasExtrasGbProventosExit
     end
     object edOutrosGbProventos: TEdit
@@ -179,6 +204,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Width = 121
       Height = 21
       TabOrder = 2
+      OnChange = edOutrosGbProventosChange
       OnExit = edOutrosGbProventosExit
     end
     object edTotalGbProventos: TEdit
@@ -199,7 +225,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
     Width = 265
     Height = 129
     Caption = 'Descontos'
-    TabOrder = 8
+    TabOrder = 7
     object lbTotalGbDescontos: TLabel
       Left = 96
       Top = 104
@@ -248,6 +274,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Enabled = False
       ReadOnly = True
       TabOrder = 1
+      OnChange = edValeTransporteGbDescontosChange
     end
     object edIRRFGbDescontos: TEdit
       Left = 128
@@ -258,6 +285,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Enabled = False
       ReadOnly = True
       TabOrder = 3
+      OnChange = edIRRFGbDescontosChange
     end
     object edINSSGbDescontos: TEdit
       Left = 128
@@ -268,6 +296,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Enabled = False
       ReadOnly = True
       TabOrder = 2
+      OnChange = edINSSGbDescontosChange
     end
   end
   object gbResultado: TGroupBox
@@ -276,7 +305,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
     Width = 537
     Height = 89
     Caption = 'Resultado'
-    TabOrder = 2
+    TabOrder = 11
     TabStop = True
     object lbTotalProventosGbResultado: TLabel
       Left = 27
@@ -308,6 +337,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Enabled = False
       ReadOnly = True
       TabOrder = 0
+      OnChange = edTotalProventosGbResultadoChange
     end
     object edTotalDescontosGbResultado: TEdit
       Left = 400
@@ -318,6 +348,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Enabled = False
       ReadOnly = True
       TabOrder = 1
+      OnChange = edTotalDescontosGbResultadoChange
     end
     object edSalarioLiquidoGbResultado: TEdit
       Left = 128
@@ -328,45 +359,47 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Enabled = False
       ReadOnly = True
       TabOrder = 2
+      OnChange = edSalarioLiquidoGbResultadoChange
     end
   end
   object btCalcular: TButton
-    Left = 238
-    Top = 373
+    Left = 198
+    Top = 381
     Width = 75
     Height = 25
     Caption = 'Calcular'
-    TabOrder = 3
+    TabOrder = 2
     OnClick = btCalcularClick
   end
   object btSalvar: TButton
-    Left = 319
-    Top = 373
+    Left = 279
+    Top = 381
     Width = 75
     Height = 25
     Caption = 'Salvar'
     Enabled = False
-    TabOrder = 4
+    TabOrder = 3
     OnClick = btSalvarClick
   end
   object btLimpar: TButton
-    Left = 401
-    Top = 373
+    Left = 361
+    Top = 381
     Width = 75
     Height = 25
     Caption = 'Limpar'
-    TabOrder = 5
+    Enabled = False
+    TabOrder = 4
     OnClick = btLimparClick
   end
   object grFolhaDePagamentos: TDBGrid
     Left = 48
-    Top = 424
+    Top = 416
     Width = 537
     Height = 120
     TabStop = False
     DataSource = dsFolhaDePagamentos
     ReadOnly = True
-    TabOrder = 9
+    TabOrder = 8
     TitleFont.Charset = DEFAULT_CHARSET
     TitleFont.Color = clWindowText
     TitleFont.Height = -11
@@ -436,9 +469,8 @@ object frFolhaDePagamento: TfrFolhaDePagamento
     Left = 712
     Top = 48
     Width = 409
-    Height = 209
-    TabOrder = 10
-    TabStop = True
+    Height = 297
+    TabOrder = 9
     Visible = False
     object lbCadastroDeFuncionariosPnCadastroDeFuncionarios: TLabel
       Left = 132
@@ -558,31 +590,34 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       TabOrder = 3
       OnClick = btNovoPnCadastroDeFuncionariosClick
     end
-  end
-  object btConsultarTabela: TButton
-    Left = 157
-    Top = 373
-    Width = 75
-    Height = 25
-    Caption = 'Consultar'
-    TabOrder = 7
-    OnClick = btConsultarTabelaClick
-  end
-  object btDelete: TButton
-    Left = 480
-    Top = 373
-    Width = 75
-    Height = 25
-    Caption = 'Delete'
-    TabOrder = 6
-    OnClick = btDeleteClick
+    object memoAvisoPnCadastroDeFuncionarios: TMemo
+      Left = 120
+      Top = 200
+      Width = 241
+      Height = 73
+      Enabled = False
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clRed
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      Lines.Strings = (
+        'Alterar o cargo do funcion'#225'rio n'#227'o vai alterar '
+        'os registros j'#225' realizados na folha. '
+        'Caso precise alterar o cargo em algum '
+        'registro, realize a altera'#231#227'o manualmente por '
+        'selecionar a folha e salv'#225'-la novamente.')
+      ParentFont = False
+      ReadOnly = True
+      TabOrder = 8
+    end
   end
   object pnCadastroDeCargos: TPanel
     Left = 712
-    Top = 296
+    Top = 352
     Width = 409
-    Height = 113
-    TabOrder = 11
+    Height = 201
+    TabOrder = 10
     Visible = False
     object lbCadastroDeCargosPnCadastroDeCargos: TLabel
       Left = 149
@@ -609,6 +644,8 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Top = 40
       Width = 241
       Height = 21
+      Enabled = False
+      ReadOnly = True
       TabOrder = 0
       OnExit = edCodigoPnCadastroDeFuncionariosExit
     end
@@ -618,6 +655,7 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Width = 75
       Height = 25
       Caption = 'Salvar'
+      Enabled = False
       TabOrder = 1
       OnClick = btSalvarPnCadastroDeCargosClick
     end
@@ -627,12 +665,41 @@ object frFolhaDePagamento: TfrFolhaDePagamento
       Width = 75
       Height = 25
       Caption = 'Fechar'
+      Enabled = False
       TabOrder = 2
       OnClick = btFecharPnCadastroDeCargosClick
+    end
+    object grCargos: TDBGrid
+      Left = 40
+      Top = 104
+      Width = 320
+      Height = 81
+      DataSource = dsCargos
+      TabOrder = 3
+      TitleFont.Charset = DEFAULT_CHARSET
+      TitleFont.Color = clWindowText
+      TitleFont.Height = -11
+      TitleFont.Name = 'MS Sans Serif'
+      TitleFont.Style = []
+      Columns = <
+        item
+          Expanded = False
+          FieldName = 'bdCODIGOCARGO'
+          Title.Caption = 'C'#243'digo'
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'bdNOMEDOCARGO'
+          Title.Caption = 'Nome do Cargo'
+          Width = 238
+          Visible = True
+        end>
     end
   end
   object dsFolhaDePagamentos: TDataSource
     DataSet = cdsFolhaDePagamentos
+    OnDataChange = dsFolhaDePagamentosDataChange
     Left = 80
     Top = 376
   end
